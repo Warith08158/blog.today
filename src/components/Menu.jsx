@@ -3,10 +3,12 @@ import Logo from "./Logo";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../context/UserContextProvider";
 import DropdownProfile from "./DropdownProfile";
+import SignOutModal from "./SignOutModal";
 
 const Menu = () => {
   const { isLoading, user } = useUserContext();
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [signOut, setSignOut] = useState(false);
 
   useEffect(() => {
     const handleClick = () => {
@@ -71,7 +73,7 @@ const Menu = () => {
               {/* drop down */}
               {openDropdown && (
                 <div className="absolute right-0 top-16">
-                  <DropdownProfile />
+                  <DropdownProfile signOut={signOut} setSignOut={setSignOut} />
                 </div>
               )}
             </div>
@@ -91,6 +93,8 @@ const Menu = () => {
           {/*  */}
         </div>
       </div>
+
+      {signOut && <SignOutModal setSignOut={setSignOut} />}
     </nav>
   );
 };

@@ -13,39 +13,15 @@ const UserProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.emailVerified) {
-        getLoggedInUser(user.uid)
-          .then((data) => {
-            setIsLoading(false);
-            setUser(data);
-          })
-          .catch((error) => {
-            setIsLoading(false);
-            setUser(null);
-          });
+        onSnapshot(doc(db, "users", user.uid), (doc) => {
+          setUser(doc.data());
+          setIsLoading(false);
+        });
       } else {
         setIsLoading(false);
         setUser(null);
       }
     });
-
-    function getLoggedInUser(uid) {
-      return new Promise(
-        (resolve, reject) => {
-          const unsub = onSnapshot(doc(db, "users", uid), (doc) => {
-            if (doc) {
-              resolve(doc.data());
-              unsub();
-            } else {
-              unsub();
-              reject("an error occurred");
-            }
-          });
-        },
-        (error) => {
-          throw error;
-        }
-      );
-    }
 
     return () => {
       unsubscribe();
