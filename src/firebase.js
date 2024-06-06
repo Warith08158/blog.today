@@ -21,8 +21,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth();
+export const db = getFirestore(app);
+export const auth = getAuth();
 
 //create new user account
 export const createUser = (email, password) => {

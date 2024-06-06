@@ -1,21 +1,41 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { FetchingPage } from "../Indicator/indicator";
-const Home = lazy(() => import("../routes/Home"));
+const RootLayout = lazy(() => import("../Layouts/RootLayout"));
 const SignIn = lazy(() => import("../routes/SignIn"));
 const SignUp = lazy(() => import("../routes/SignUp"));
 const ForgetPassword = lazy(() => import("../routes/ForgetPassword"));
 const ErrorPage = lazy(() => import("../routes/ErrorPage"));
+const Feed = lazy(() => import("../routes/Feed"));
+const UserDashboard = lazy(() => import("../routes/UserDashboard"));
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <Suspense fallback={<FetchingPage />}>
-        <Home />
+        <RootLayout />
       </Suspense>
     ),
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "/",
+        element: (
+          <Suspense fallback={<FetchingPage />}>
+            <Feed />
+          </Suspense>
+        ),
+      },
+      {
+        path: "user-dashboard",
+        element: (
+          <Suspense fallback={<FetchingPage />}>
+            <UserDashboard />
+          </Suspense>
+        ),
+      },
+    ],
   },
 
   {
