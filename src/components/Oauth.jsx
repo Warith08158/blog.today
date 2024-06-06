@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { continueWithGoogle } from "../firebase";
+import {
+  addUserToDatabase,
+  continueWithGoogle,
+  getUserData,
+} from "../firebase";
 import { toast } from "react-toastify";
 import Spinner from "../Indicator/Spinner";
 
@@ -11,7 +15,31 @@ const Oauth = () => {
     setIsLoading(true);
     try {
       const user = await continueWithGoogle();
-      console.log(user);
+      getUserData(user.uid)
+        .then((docSnap) => {
+          //check if user exist in database
+          if (docSnap.data()) {
+            //navigatae to dashboard
+          } else {
+            //if user does not exist in database, create user account
+            const data = {
+              name: user.displayName,
+              email: user.email,
+            };
+
+            //add user data to database
+            addUserToDatabase(user.uid, data)
+              .then((data) => {
+                //navigate to dashboard
+              })
+              .catch((error) => {
+                throw new Error(error);
+              });
+          }
+        })
+        .catch((error) => {
+          throw new Error(error);
+        });
     } catch (error) {
       toast.error("an error occurred");
       console.log(error);

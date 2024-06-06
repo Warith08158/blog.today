@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import {
   addUserToDatabase,
   getUserData,
+  getUserProfile,
   sendEmailVerificationLink,
   signInUser,
 } from "../firebase";
@@ -82,11 +83,20 @@ const SignIn = () => {
             if (docSnap.exists()) {
             } else {
               //else create a data for the user in the firestore
-              const data = { email: user.email };
-              addUserToDatabase(userID, data)
-                .then((successMessage) => console.log(docSnap.data()))
+              getUserProfile()
+                .then((userName) => {
+                  const data = { email: user.email, name: userName };
+                  addUserToDatabase(userID, data)
+                    .then((successMessage) => {
+                      //navigate to dashboard
+                      console.log(docSnap.data());
+                    })
+                    .catch((error) => {
+                      throw new Error(error);
+                    });
+                })
                 .catch((error) => {
-                  throw new Error(error);
+                  throw Error(error);
                 });
             }
           })

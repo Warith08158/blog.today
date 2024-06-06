@@ -12,12 +12,12 @@ import { GoogleAuthProvider } from "firebase/auth";
 import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.REACT_APP_API_KEY,
-  authDomain: import.meta.env.REACT_APP_AUTH_DOMAIN,
-  projectId: import.meta.env.REACT_APP_PROJECT_ID,
-  storageBucket: import.meta.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.REACT_APP_MESSAGING_SENDER_ID,
-  appId: import.meta.env.REACT_APP_APP_ID,
+  apiKey: "AIzaSyBtfeivP-y5R6QfvLfgCOZJC2UVHrEVKm0",
+  authDomain: "blogtoday-afd1a.firebaseapp.com",
+  projectId: "blogtoday-afd1a",
+  storageBucket: "blogtoday-afd1a.appspot.com",
+  messagingSenderId: "145748615550",
+  appId: "1:145748615550:web:e020ab4ab72396a477d32f",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -134,7 +134,7 @@ export const addUserToDatabase = (userID, data) => {
   );
 };
 
-//updat user profile
+//update user profile
 export const updateUserProfile = (userName) => {
   return new Promise(
     (resolve, reject) => {
@@ -143,6 +143,25 @@ export const updateUserProfile = (userName) => {
       })
         .then(() => resolve("Profile updated"))
         .catch((error) => reject(error));
+    },
+    (error) => {
+      throw new Error(error);
+    }
+  );
+};
+
+//get user profile
+export const getUserProfile = () => {
+  const user = auth.currentUser;
+  return new Promise(
+    (resolve, reject) => {
+      if (user !== null) {
+        user.providerData.forEach((profile) => {
+          resolve(profile.displayName);
+        });
+      } else {
+        reject("An error occurred");
+      }
     },
     (error) => {
       throw new Error(error);
