@@ -4,7 +4,12 @@ import ErrorAlert from "../components/ErrorAlert";
 import Logo from "../components/Logo";
 import Input from "../components/Input";
 import { Link } from "react-router-dom";
-import { sendEmailVerificationLink, signInUser } from "../firebase";
+import {
+  addUserToDatabase,
+  getUserData,
+  sendEmailVerificationLink,
+  signInUser,
+} from "../firebase";
 import { toast } from "react-toastify";
 
 const SignIn = () => {
@@ -22,17 +27,10 @@ const SignIn = () => {
     let changingInputId = e.target.id;
     let changingInputValue = e.target.value;
 
-    //check if changingInputId is email
-    if (changingInputId === "email") {
-      setUserDetails({ ...userDetails, email: changingInputValue });
-      return;
-    }
-
-    //check if changingInputValue is password
-    if (changingInputId === "password") {
-      setUserDetails({ ...userDetails, password: changingInputValue });
-      return;
-    }
+    setUserDetails(() => ({
+      ...userDetails,
+      [changingInputId]: changingInputValue,
+    }));
   };
 
   //submit signin form
@@ -76,9 +74,28 @@ const SignIn = () => {
 
       //if account is verified
       if (user.emailVerified) {
-        console.log(user);
+        const userID = user.uid;
+        //check if user data is available in firestore
+        getUserData(userID)
+          .then((docSnap) => {
+            //if available, navigate to dashboard
+            if (docSnap.exists()) {
+            } else {
+              //else create a data for the user in the firestore
+              const data = { email: user.email };
+              addUserToDatabase(userID, data)
+                .then((successMessage) => console.log(docSnap.data()))
+                .catch((error) => {
+                  throw new Error(error);
+                });
+            }
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
       }
     } catch (error) {
+      console.log(error);
       if (error.code === "auth/invalid-credential") {
         toast.error("user not found");
       } else {

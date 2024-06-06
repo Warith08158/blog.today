@@ -4,16 +4,21 @@ import ErrorAlert from "../components/ErrorAlert";
 import Oauth from "../components/Oauth";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createUser, sendEmailVerificationLink } from "../firebase";
+import {
+  createUser,
+  sendEmailVerificationLink,
+  updateUserProfile,
+} from "../firebase";
 
 const SignUp = () => {
   const [userDetails, setUserDetails] = useState({
     email: "",
     password: "",
     confirmPassword: "",
+    name: "",
   });
   const [error, setError] = useState(false);
-  const { email, password, confirmPassword } = userDetails;
+  const { email, password, confirmPassword, name } = userDetails;
   const [creatingAccount, setCreatingAccount] = useState(false);
 
   //Get input value
@@ -21,23 +26,10 @@ const SignUp = () => {
     let changingInputId = e.target.id;
     let changingInputValue = e.target.value;
 
-    //if changingInputId is email
-    if (changingInputId === "email") {
-      setUserDetails({ ...userDetails, email: changingInputValue });
-      return;
-    }
-
-    //if changingInputId is password
-    if (changingInputId === "password") {
-      setUserDetails({ ...userDetails, password: changingInputValue });
-      return;
-    }
-
-    //if changingInputId is confirmPassword
-    if (changingInputId === "confirm-password") {
-      setUserDetails({ ...userDetails, confirmPassword: changingInputValue });
-      return;
-    }
+    setUserDetails(() => ({
+      ...userDetails,
+      [changingInputId]: changingInputValue,
+    }));
   }
 
   //submit signup form
@@ -45,6 +37,10 @@ const SignUp = () => {
     e.preventDefault();
     setError(false);
 
+    //check name
+    if (name === "" || name.length < 5 || name.length > 20) {
+      setError(true);
+    }
     //check email address
     if (email === "" || !email.includes("@") || !email.includes(".")) {
       setError(true);
@@ -66,6 +62,7 @@ const SignUp = () => {
     setCreatingAccount(true);
     try {
       const user = await createUser(email, password);
+      await updateUserProfile(name);
       toast.success("Account created");
 
       //send confirmation email
@@ -90,13 +87,14 @@ const SignUp = () => {
         email: "",
         password: "",
         confirmPassword: "",
+        name: "",
       });
       setCreatingAccount(false);
     }
   }
 
   return (
-    <section className="bg-gray-100 h-screen min-h-[700px] flex items-center justify-center">
+    <section className="bg-gray-100 h-screen min-h-[800px] flex items-center justify-center">
       <div className="flex flex-col items-start gap-4 w-[90%] max-w-md mx-auto">
         <Logo />
 
@@ -110,6 +108,29 @@ const SignUp = () => {
             action="#"
             onSubmit={formSubmit}
           >
+            {/* input props (htmlFor, label, type, name, id, placeholder) */}
+            <div>
+              <Input
+                htmlFor={"name"}
+                label={"Your name"}
+                type={"name"}
+                name={"name"}
+                id={"name"}
+                placeholder={"Your name"}
+                onChange={onChange}
+                value={name}
+              />
+              {error ? (
+                name === "" ? (
+                  <ErrorAlert errorMessage={"Field cannot be empty"} />
+                ) : name.length < 5 ? (
+                  <ErrorAlert errorMessage={"Atleast 5 characters"} />
+                ) : name.length > 20 ? (
+                  <ErrorAlert errorMessage={"Maximum 20 characters"} />
+                ) : null
+              ) : null}
+            </div>
+
             {/* input props (htmlFor, label, type, name, id, placeholder) */}
             <div>
               <Input
@@ -157,11 +178,11 @@ const SignUp = () => {
             {/* input props (htmlFor, label, type, name, id, placeholder) */}
             <div>
               <Input
-                htmlFor={"confirm-password"}
+                htmlFor={"confirmPassword"}
                 label={"Confirm password"}
                 type={"password"}
-                name={"confirm-password"}
-                id={"confirm-password"}
+                name={"confirmPassword"}
+                id={"confirmPassword"}
                 placeholder={"••••••••"}
                 onChange={onChange}
                 value={confirmPassword}
