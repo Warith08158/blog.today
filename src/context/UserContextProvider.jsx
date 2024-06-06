@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "../firebase";
+import { auth, db, getUserData } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 
@@ -9,22 +9,38 @@ export const useUserContext = () => useContext(userContext);
 
 const UserProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [user, setUser] = useState(null);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.emailVerified) {
-        setIsLoading(false);
-        setIsLoggedIn(true);
+        getLoggedInUser(user.uid)
+          .then((data) => {
+            setIsLoading(false);
+            setUser(data);
+          })
+          .catch((error) => {
+            setIsLoading(false);
+            setUser(null);
+          });
       } else {
         setIsLoading(false);
-        setIsLoggedIn(false);
+        setUser(null);
       }
     });
 
     function getLoggedInUser(uid) {
-      console.log(uid);
       return new Promise(
-        (resolve, reject) => {},
+        (resolve, reject) => {
+          const unsub = onSnapshot(doc(db, "users", uid), (doc) => {
+            if (doc) {
+              resolve(doc.data());
+              unsub();
+            } else {
+              unsub();
+              reject("an error occurred");
+            }
+          });
+        },
         (error) => {
           throw error;
         }
@@ -36,19 +52,8 @@ const UserProvider = ({ children }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  // const unsub = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
-  //   console.log("Current data: ", doc.data());
-  // });
-
-  //   return () => {
-  //
-  //   };
-  // }, []);
-
-  // console.log(auth.currentUser.uid);
   return (
-    <userContext.Provider value={{ isLoading, isLoggedIn }}>
+    <userContext.Provider value={{ isLoading, user }}>
       {children}
     </userContext.Provider>
   );

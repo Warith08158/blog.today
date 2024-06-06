@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { Link } from "react-router-dom";
-import Spinner from "../Indicator/Spinner";
 import { useUserContext } from "../context/UserContextProvider";
 import DropdownProfile from "./DropdownProfile";
 
 const Menu = () => {
-  const { isLoading, isLoggedIn } = useUserContext();
+  const { isLoading, user } = useUserContext();
   const [openDropdown, setOpenDropdown] = useState(false);
 
   useEffect(() => {
@@ -49,7 +48,7 @@ const Menu = () => {
           )}
 
           {/* if user is logged in and is not loading */}
-          {isLoggedIn && !isLoading && (
+          {user && !isLoading && (
             <div
               className="flex items-center gap-4 relative cursor-pointer"
               onClick={(e) => {
@@ -63,9 +62,9 @@ const Menu = () => {
                 alt=""
               />
               <div className="hidden sm:block font-medium dark:text-white">
-                <div>Jese Leos</div>
+                <div>{user?.name}</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Joined in August 2014
+                  {user?.email}
                 </div>
               </div>
 
@@ -79,7 +78,7 @@ const Menu = () => {
           )}
 
           {/* if user is not logged in and is not loading */}
-          {!isLoggedIn && !isLoading && (
+          {!user && !isLoading && (
             <Link
               to="/sign-in"
               className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
