@@ -7,7 +7,7 @@ const SignUp = lazy(() => import("../routes/SignUp"));
 const ForgetPassword = lazy(() => import("../routes/ForgetPassword"));
 const ErrorPage = lazy(() => import("../routes/ErrorPage"));
 const Feed = lazy(() => import("../routes/Feed"));
-const UserDashboard = lazy(() => import("../routes/UserDashboard"));
+const UserProfile = lazy(() => import("../routes/UserProfile"));
 const ManageBlog = lazy(() => import("../routes/ManageBlog"));
 const CreateBlog = lazy(() => import("../routes/CreateBlog"));
 const EditBlog = lazy(() => import("../routes/EditBlog"));
@@ -31,10 +31,10 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "user-dashboard",
+        path: "user-profile",
         element: (
           <Suspense fallback={<FetchingPage />}>
-            <UserDashboard />
+            <UserProfile />
           </Suspense>
         ),
       },

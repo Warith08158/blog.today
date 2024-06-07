@@ -6,9 +6,11 @@ import {
 } from "../firebase";
 import { toast } from "react-toastify";
 import Spinner from "../Indicator/Spinner";
+import { useNavigate } from "react-router-dom";
 
 const Oauth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   //continue with google
   const handleButtonClick = async () => {
@@ -19,7 +21,8 @@ const Oauth = () => {
         .then((docSnap) => {
           //check if user exist in database
           if (docSnap.data()) {
-            //navigatae to dashboard
+            //navigate to dashboard
+            navigate("/user-profile");
           } else {
             //if user does not exist in database, create user account
             const data = {
@@ -31,6 +34,7 @@ const Oauth = () => {
             addUserToDatabase(user.uid, data)
               .then((data) => {
                 //navigate to dashboard
+                navigate("/user-profile");
               })
               .catch((error) => {
                 throw new Error(error);

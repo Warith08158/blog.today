@@ -3,7 +3,7 @@ import Oauth from "../components/Oauth";
 import ErrorAlert from "../components/ErrorAlert";
 import Logo from "../components/Logo";
 import Input from "../components/Input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   addUserToDatabase,
   getUserData,
@@ -20,6 +20,7 @@ const SignIn = () => {
   });
   const [error, setError] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const navigate = useNavigate();
 
   const { email, password } = userDetails;
 
@@ -81,6 +82,7 @@ const SignIn = () => {
           .then((docSnap) => {
             //if available, navigate to dashboard
             if (docSnap.exists()) {
+              navigate("/user-profile");
             } else {
               //else create a data for the user in the firestore
               getUserProfile()
@@ -89,7 +91,8 @@ const SignIn = () => {
                   addUserToDatabase(userID, data)
                     .then((successMessage) => {
                       //navigate to dashboard
-                      console.log(docSnap.data());
+                      navigate("/user-profile");
+                      // console.log(docSnap.data());
                     })
                     .catch((error) => {
                       throw new Error(error);
