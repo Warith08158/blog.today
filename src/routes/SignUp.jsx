@@ -94,7 +94,7 @@ const SignUp = () => {
   }
 
   return (
-    <section className="bg-gray-100 h-screen min-h-[800px] flex items-center justify-center">
+    <section className="bg-gray-100 h-screen min-h-[820px] flex items-center justify-center">
       <div className="flex flex-col items-start gap-4 w-[90%] max-w-md mx-auto">
         <Logo />
 

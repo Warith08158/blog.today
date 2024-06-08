@@ -9,7 +9,13 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { GoogleAuthProvider } from "firebase/auth";
-import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBtfeivP-y5R6QfvLfgCOZJC2UVHrEVKm0",
@@ -165,6 +171,23 @@ export const getUserProfile = () => {
     },
     (error) => {
       throw new Error(error);
+    }
+  );
+};
+
+//update user detail
+export const updateUser = (userID, fieldName, updatedValue) => {
+  const docRef = doc(db, "users", userID);
+  return new Promise(
+    (resolve, reject) => {
+      updateDoc(docRef, {
+        [fieldName]: updatedValue,
+      })
+        .then(() => resolve("updated sucessfully"))
+        .catch((error) => reject(error));
+    },
+    (error) => {
+      throw error;
     }
   );
 };

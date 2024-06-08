@@ -9,6 +9,7 @@ const Menu = () => {
   const { isLoading, user } = useUserContext();
   const [openDropdown, setOpenDropdown] = useState(false);
   const [signOut, setSignOut] = useState(false);
+  const [avatarIsLoaded, setAvatarIsLoaded] = useState(false);
 
   useEffect(() => {
     const handleClick = () => {
@@ -28,10 +29,13 @@ const Menu = () => {
         <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           {/* if it is loading */}
           {isLoading && (
-            <div role="status">
+            <div
+              role="status"
+              className="w-10 h-10 flex items-center justify-center"
+            >
               <svg
                 aria-hidden="true"
-                className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-gray-600"
+                className="w-6 h-6 text-gray-200 animate-spin dark:text-gray-600 fill-gray-600"
                 viewBox="0 0 100 101"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -58,11 +62,38 @@ const Menu = () => {
                 setOpenDropdown((prev) => !prev);
               }}
             >
-              <img
-                className="w-10 h-10 rounded-full"
-                src="/docs/images/people/profile-picture-5.jpg"
-                alt=""
-              />
+              {user.avatar ? (
+                avatarIsLoaded ? (
+                  // if avatar is fully downloaded display avatar
+                  <img
+                    className="w-10 h-10 rounded-full"
+                    src={user.avatar}
+                    alt="avatar"
+                    onLoad={() => setAvatarIsLoaded(true)}
+                  />
+                ) : (
+                  // if avatar is not fully downloaded display skeleton loader
+                  <div className="flex-shrink-0">
+                    <span className="w-10 h-10 block bg-gray-200 rounded-full dark:bg-neutral-700 animate-pulse"></span>
+                  </div>
+                )
+              ) : (
+                <div className="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                  <svg
+                    className="absolute w-12 h-12 text-gray-400 -left-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    ></path>
+                  </svg>
+                </div>
+              )}
+
               <div className="hidden sm:block font-medium dark:text-white">
                 <div>{user?.name}</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">

@@ -1,15 +1,19 @@
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const SignOutModal = ({ setSignOut }) => {
+  const navigate = useNavigate();
   const signUserOut = () => {
     signOut(auth)
       .then(() => {
         setSignOut(false);
+        navigate("/");
       })
-      .catch((error) => {
+      .catch(() => {
         toast.error("An error occurred");
+        setSignOut(false);
       });
   };
   return (
