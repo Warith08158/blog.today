@@ -66,7 +66,9 @@ const Menu = () => {
                 <>
                   <img
                     className={
-                      avatarIsLoaded ? "w-10 h-10 rounded-full" : "hidden"
+                      avatarIsLoaded
+                        ? "w-10 h-10 rounded-full object-cover"
+                        : "hidden"
                     }
                     alt="avatar"
                     src={user?.avatar}
@@ -75,7 +77,7 @@ const Menu = () => {
                   {!avatarIsLoaded && (
                     <div className="flex-shrink-0">
                       {" "}
-                      <span className="w-10 h-10 block bg-gray-200 rounded-full dark:bg-neutral-700 animate-pulse"></span>
+                      <span className="w-10 h-10 block bg-gray-800 rounded-full dark:bg-neutral-700 animate-pulse"></span>
                     </div>
                   )}
                 </>
