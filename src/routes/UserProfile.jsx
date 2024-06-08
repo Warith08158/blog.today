@@ -633,8 +633,8 @@ export const UpdatSocialMediaLinks = () => {
       </ul>
       {/* modal */}
       {openModal && (
-        <div className="bg-white absolute bottom-0 right-0 left-0">
-          <div className="max-w-2xl mx-auto bg-white py-8 rounded-t-md shadow-xl px-4 relative">
+        <div className="bg-gray-100 fixed bottom-0 right-0 left-0 shadow-2xl">
+          <div className="max-w-2xl mx-auto bg-transparent py-8 rounded-t-md px-4 relative">
             <h5 className="text-xl text-gray-800 font-semibold">
               Add Your Social Links
             </h5>
@@ -649,22 +649,45 @@ export const UpdatSocialMediaLinks = () => {
               <li className="flex items-center gap-2">
                 <FaFacebookF className="text-gray-600 text-md" />
                 Facebook
-                <span className="ml-3 text-gray-500 text-sm">edit</span>
+                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
+                  edit
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <FaSquareInstagram className="text-gray-600 text-md" />
                 Instagram
-                <span className="ml-3 text-gray-500 text-sm">edit</span>
+                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
+                  edit
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <FaLinkedinIn className="text-gray-600 text-md" />
                 LinkedIn
-                <span className="ml-3 text-gray-500 text-sm">edit</span>
+                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
+                  edit
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <ImTwitter className="text-gray-600 text-md" />
                 Twitter
-                <span className="ml-3 text-gray-500 text-sm">edit</span>
+                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
+                  edit
+                </span>
+                {/* <div className="border-2 border-white">
+                  <label
+                    for="first_name"
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    First name
+                  </label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    className="border-transparent focus:border-transparent ring-0"
+                    placeholder="John"
+                    required
+                  />
+                </div> */}
               </li>
             </ul>
             <button
