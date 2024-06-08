@@ -10,7 +10,13 @@ import { FaCamera } from "react-icons/fa6";
 import { FaPencilAlt } from "react-icons/fa";
 import { IoMdCheckmark } from "react-icons/io";
 import { toast } from "react-toastify";
-import { auth, getUserData, updateUser, uploadFile } from "../firebase";
+import {
+  auth,
+  deleteFile,
+  getUserData,
+  updateUser,
+  uploadFile,
+} from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
 const UserProfile = () => {
@@ -106,9 +112,12 @@ export const SkeletonLoader = () => {
   );
 };
 
+//images component
+
 export const UserImages = () => {
   const { user } = useUserContext();
   const [coverPhotoIsLoaded, setCoverPhotoIsLoaded] = useState(false);
+  const [avatarIsLoaded, setAvatarIsLoaded] = useState(false);
   return (
     <div
       id="user-images"
@@ -129,7 +138,7 @@ export const UserImages = () => {
               onLoad={() => setCoverPhotoIsLoaded(true)}
             />
             {!coverPhotoIsLoaded && (
-              <div class="h-full w-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4"></div>
+              <div className="h-full w-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4"></div>
             )}
             <div className="absolute inset-0 bg-gradient-to-r rounded-lg from-black via-transparent/50 to-black opacity-90"></div>
           </div>
@@ -149,11 +158,26 @@ export const UserImages = () => {
         )}
 
         {/* avatar photo */}
-        {user?.avatar ? (
-          <img src="" alt="" />
-        ) : (
-          <div className="absolute left-4 bottom-4 flex items-center justify-center">
-            <div className="rounded-full w-28 h-28 shadow-md border border-white flex items-center justify-center bg-gray-100">
+
+        <div className="absolute left-4 bottom-4 flex items-center justify-center">
+          <div className="rounded-full w-28 h-28 shadow-md border border-white flex items-center justify-center bg-gray-100">
+            {user?.avatar ? (
+              <div className="w-full h-full rounded-full">
+                <img
+                  src={user?.avatar}
+                  alt="avatar"
+                  className={`${
+                    avatarIsLoaded
+                      ? "w-full h-full object-cover rounded-full"
+                      : "hidden"
+                  }`}
+                  onLoad={() => setAvatarIsLoaded(true)}
+                />
+                {!avatarIsLoaded && (
+                  <div className="bg-gray-200 animate-pulse rounded-full w-full h-full object-cover"></div>
+                )}
+              </div>
+            ) : (
               <svg
                 className="w-20 h-20 object-contain text-gray-400 -left-1"
                 fill="currentColor"
@@ -166,10 +190,10 @@ export const UserImages = () => {
                   clipRule="evenodd"
                 ></path>
               </svg>
-            </div>
-            <FaCamera className="absolute -right-[0.01rem] bottom-3 text-2xl text-gray-700" />
+            )}
           </div>
-        )}
+          <UpdateAvatar />
+        </div>
 
         <div className="absolute top-4 left-4">
           <UserName />
@@ -250,7 +274,11 @@ export const UserName = () => {
             onChange={handleChangeName}
             type="text"
             id="username"
-            className="bg-gray-50 border border-gray-300 text-gray-800 rounded-lg focus:border-white block w-full p-2 text-2xl"
+            className={`${
+              user?.coverPhoto
+                ? "bg-gray-100 text-gray-950"
+                : "bg-gray-50 border border-gray-300 text-gray-800  focus:border-white"
+            } px-2 py-1 text-2xl rounded-lg block w-full`}
             value={name}
           />
         </div>
@@ -261,11 +289,18 @@ export const UserName = () => {
       )}
       {edit ? (
         <IoMdCheckmark
-          className="text-base cursor-pointer"
+          className={`${
+            user?.coverPhoto ? "text-gray-200" : ""
+          } text-lg cursor-pointer`}
           onClick={updateName}
         />
       ) : (
-        <FaPencilAlt className="text-base cursor-pointer" onClick={editName} />
+        <FaPencilAlt
+          className={`${
+            user?.coverPhoto ? "text-gray-200" : ""
+          } text-base cursor-pointer`}
+          onClick={editName}
+        />
       )}
     </div>
   );
@@ -277,7 +312,9 @@ export const UpdateCoverPhoto = () => {
 
   const handleOnChange = async (e) => {
     const file = e.target.files[0];
-    const fileName = `${auth.currentUser.uid}-${uuidv4()}-${file.name}`;
+    const fileName = `${auth.currentUser.uid}-${uuidv4()}-${
+      file.name
+    }-cover-photo`;
 
     //if image is not selected
     if (!file) {
@@ -289,8 +326,25 @@ export const UpdateCoverPhoto = () => {
     //check user data for image
     try {
       const user = await getUserData(auth.currentUser.uid);
-      //check if there is cover image in the user database, delete it in the storage, delete the link from  the firestore, upload the new image to the storage and update the link in the firestore
+      // check if there is cover image in the user database
       if (user.data().coverPhoto) {
+        const fileName = user.data().coverPhoto;
+        // delete it in the storage
+        deleteFile(fileName)
+          .then((success) => console.log(success))
+          .catch((error) => toast.error("an error occurred while uploading"));
+
+        //upload new image to the storage
+        uploadFile(file, fileName)
+          .then((imageURL) =>
+            //add the new link to coverPhoto field
+            updateUser(auth.currentUser.uid, "coverPhoto", imageURL)
+              .then(() => toast.success("Uploaded successfully"))
+              .catch((error) => {
+                toast.error(error);
+              })
+          )
+          .catch((err) => toast.error("An error occurred while uploading"));
         return;
       }
 
@@ -299,6 +353,7 @@ export const UpdateCoverPhoto = () => {
         //upload new image to the storage
         uploadFile(file, fileName)
           .then((imageURL) =>
+            //add the new link to coverPhoto field
             updateUser(auth.currentUser.uid, "coverPhoto", imageURL)
               .then(() => toast.success("Uploaded successfully"))
               .catch((error) => {
@@ -307,8 +362,6 @@ export const UpdateCoverPhoto = () => {
               })
           )
           .catch((err) => toast.error("An error occurred while uploading"));
-
-        //add the new link to coverPhoto field
         return;
       }
     } catch (error) {
@@ -322,7 +375,7 @@ export const UpdateCoverPhoto = () => {
       <label htmlFor="coverphoto" className="cursor-pointer">
         <FaCamera
           className={`${
-            user?.coverPhoto ? "text-gray-300" : " text-gray-700"
+            user?.coverPhoto ? "text-gray-400" : " text-gray-700"
           } absolute right-4 bottom-4 text-2xl`}
         />
       </label>
@@ -330,6 +383,89 @@ export const UpdateCoverPhoto = () => {
         type="file"
         name="coverphoto"
         id="coverphoto"
+        className="hidden"
+        accept=".png, .jpeg, .jpg"
+        onChange={handleOnChange}
+      />
+    </>
+  );
+};
+
+//update avatar image
+
+export const UpdateAvatar = () => {
+  const { user } = useUserContext();
+  const handleOnChange = async (e) => {
+    const file = e.target.files[0];
+    const fileName = `${auth.currentUser.uid}-${uuidv4()}-${file.name}-avatar`;
+
+    //if image is not selected
+    if (!file) {
+      return;
+    }
+
+    //if Image is selected continue
+
+    //check user data for image
+    try {
+      const user = await getUserData(auth.currentUser.uid);
+      // check if there is avatar in the user database
+      if (user.data().avatar) {
+        const fileName = user.data().avatar;
+        // delete it in the storage
+        deleteFile(fileName)
+          .then((success) => console.log(success))
+          .catch((error) => toast.error("an error occurred while uploading"));
+
+        //upload new image to the storage
+        uploadFile(file, fileName)
+          .then((imageURL) =>
+            //add the new link to avatar field
+            updateUser(auth.currentUser.uid, "avatar", imageURL)
+              .then(() => toast.success("Uploaded successfully"))
+              .catch((error) => {
+                toast.error(error);
+              })
+          )
+          .catch((err) => toast.error("An error occurred while uploading"));
+        return;
+      }
+
+      //check if there is avatar image
+      if (!user.data().avatar) {
+        //upload new avatar image to the storage
+        uploadFile(file, fileName)
+          .then((imageURL) =>
+            //add the new link to avatar field
+            updateUser(auth.currentUser.uid, "avatar", imageURL)
+              .then(() => toast.success("Uploaded successfully"))
+              .catch((error) => {
+                toast.error(error);
+                console.log(error);
+              })
+          )
+          .catch((err) => toast.error("An error occurred while uploading"));
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("An error occurred while uploading");
+      return;
+    }
+  };
+  return (
+    <>
+      <label htmlFor="avatar" className="cursor-pointer">
+        <FaCamera
+          className={`absolute -right-[0.01rem] bottom-3 text-2xl ${
+            user?.avatar ? "text-gray-300" : "text-gray-700"
+          } `}
+        />
+      </label>
+      <input
+        type="file"
+        name="avatar"
+        id="avatar"
         className="hidden"
         accept=".png, .jpeg, .jpg"
         onChange={handleOnChange}

@@ -17,6 +17,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import {
+  deleteObject,
   getDownloadURL,
   getStorage,
   ref,
@@ -232,6 +233,27 @@ export const uploadFile = (file, fileName) => {
           });
         }
       );
+    },
+    (error) => {
+      throw error;
+    }
+  );
+};
+
+//delete file in storage
+export const deleteFile = (fileName) => {
+  const storage = getStorage();
+  const desertRef = ref(storage, fileName);
+
+  return new Promise(
+    (resolve, reject) => {
+      deleteObject(desertRef)
+        .then(() => {
+          resolve("file deleted successfully");
+        })
+        .catch((error) => {
+          reject(error);
+        });
     },
     (error) => {
       throw error;

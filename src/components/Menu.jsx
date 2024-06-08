@@ -63,21 +63,25 @@ const Menu = () => {
               }}
             >
               {user.avatar ? (
-                avatarIsLoaded ? (
-                  // if avatar is fully downloaded display avatar
+                <>
                   <img
-                    className="w-10 h-10 rounded-full"
-                    src={user.avatar}
+                    className={
+                      avatarIsLoaded ? "w-10 h-10 rounded-full" : "hidden"
+                    }
                     alt="avatar"
+                    src={user?.avatar}
                     onLoad={() => setAvatarIsLoaded(true)}
                   />
-                ) : (
-                  // if avatar is not fully downloaded display skeleton loader
-                  <div className="flex-shrink-0">
-                    <span className="w-10 h-10 block bg-gray-200 rounded-full dark:bg-neutral-700 animate-pulse"></span>
-                  </div>
-                )
+                  {!avatarIsLoaded && (
+                    <div className="flex-shrink-0">
+                      {" "}
+                      <span className="w-10 h-10 block bg-gray-200 rounded-full dark:bg-neutral-700 animate-pulse"></span>
+                    </div>
+                  )}
+                </>
               ) : (
+                // if avatar is not fully downloaded display skeleton loader
+
                 <div className="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
                   <svg
                     className="absolute w-12 h-12 text-gray-400 -left-1"
