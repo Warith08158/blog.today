@@ -16,6 +16,12 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBtfeivP-y5R6QfvLfgCOZJC2UVHrEVKm0",
@@ -185,6 +191,47 @@ export const updateUser = (userID, fieldName, updatedValue) => {
       })
         .then(() => resolve("updated sucessfully"))
         .catch((error) => reject(error));
+    },
+    (error) => {
+      throw error;
+    }
+  );
+};
+
+//upload file to storage
+export const uploadFile = (file, fileName) => {
+  const storage = getStorage();
+  const storageRef = ref(storage, fileName);
+
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  return new Promise(
+    (resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          // Observe state change events such as progress, pause, and resume
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          switch (snapshot.state) {
+            case "paused":
+              console.log("Upload is paused");
+              break;
+            case "running":
+              console.log("Upload is running");
+              break;
+          }
+        },
+        (error) => {
+          reject(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            resolve(downloadURL);
+          });
+        }
+      );
     },
     (error) => {
       throw error;

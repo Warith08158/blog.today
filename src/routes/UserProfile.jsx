@@ -10,7 +10,8 @@ import { FaCamera } from "react-icons/fa6";
 import { FaPencilAlt } from "react-icons/fa";
 import { IoMdCheckmark } from "react-icons/io";
 import { toast } from "react-toastify";
-import { auth, updateUser } from "../firebase";
+import { auth, getUserData, updateUser, uploadFile } from "../firebase";
+import { v4 as uuidv4 } from "uuid";
 
 const UserProfile = () => {
   const { isLoading, user } = useUserContext();
@@ -24,7 +25,7 @@ const UserProfile = () => {
   //if loading is false and user is loggedin return dashbord
   if (!isLoading && user)
     return (
-      <section className="max-w-2xl mx-auto">
+      <section className="max-w-2xl mx-auto pb-6">
         {/* title */}
         <h4
           id="profile-information"
@@ -107,6 +108,7 @@ export const SkeletonLoader = () => {
 
 export const UserImages = () => {
   const { user } = useUserContext();
+  const [coverPhotoIsLoaded, setCoverPhotoIsLoaded] = useState(false);
   return (
     <div
       id="user-images"
@@ -115,7 +117,22 @@ export const UserImages = () => {
       {/* cover photo */}
       <div className="w-full h-full bg-gray-100 relative rounded-md">
         {user?.coverPhoto ? (
-          <img src="" alt="" />
+          <div className="relative h-full w-full">
+            <img
+              src={user?.coverPhoto}
+              alt="cover-photo"
+              className={
+                coverPhotoIsLoaded
+                  ? "h-full w-full object-cover rounded-md"
+                  : "hidden"
+              }
+              onLoad={() => setCoverPhotoIsLoaded(true)}
+            />
+            {!coverPhotoIsLoaded && (
+              <div class="h-full w-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4"></div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-r rounded-lg from-black via-transparent/50 to-black opacity-90"></div>
+          </div>
         ) : (
           <svg
             className="w-full h-full object-contain text-gray-200 -left-1"
@@ -156,15 +173,22 @@ export const UserImages = () => {
 
         <div className="absolute top-4 left-4">
           <UserName />
-          <p className="text-md text-gray-700 leading-8">{user?.email}</p>
+          <p
+            className={`${
+              user?.coverPhoto ? "text-gray-400 " : "text-gray-700"
+            } text-md leading-8`}
+          >
+            {user?.email}
+          </p>
         </div>
 
-        <FaCamera className="absolute right-4 bottom-4 text-2xl text-gray-700" />
+        <UpdateCoverPhoto />
       </div>
     </div>
   );
 };
 
+//update user name
 export const UserName = () => {
   const { user } = useUserContext();
   const [edit, setEdit] = useState(false);
@@ -231,7 +255,9 @@ export const UserName = () => {
           />
         </div>
       ) : (
-        user?.name
+        <span className={`${user?.coverPhoto ? "text-gray-200" : ""}`}>
+          {user?.name}
+        </span>
       )}
       {edit ? (
         <IoMdCheckmark
@@ -242,5 +268,72 @@ export const UserName = () => {
         <FaPencilAlt className="text-base cursor-pointer" onClick={editName} />
       )}
     </div>
+  );
+};
+
+//update user cover photo
+export const UpdateCoverPhoto = () => {
+  const { user } = useUserContext();
+
+  const handleOnChange = async (e) => {
+    const file = e.target.files[0];
+    const fileName = `${auth.currentUser.uid}-${uuidv4()}-${file.name}`;
+
+    //if image is not selected
+    if (!file) {
+      return;
+    }
+
+    //if Image is selected continue
+
+    //check user data for image
+    try {
+      const user = await getUserData(auth.currentUser.uid);
+      //check if there is cover image in the user database, delete it in the storage, delete the link from  the firestore, upload the new image to the storage and update the link in the firestore
+      if (user.data().coverPhoto) {
+        return;
+      }
+
+      //check if there is no cover image
+      if (!user.data().coverPhoto) {
+        //upload new image to the storage
+        uploadFile(file, fileName)
+          .then((imageURL) =>
+            updateUser(auth.currentUser.uid, "coverPhoto", imageURL)
+              .then(() => toast.success("Uploaded successfully"))
+              .catch((error) => {
+                toast.error(error);
+                console.log(error);
+              })
+          )
+          .catch((err) => toast.error("An error occurred while uploading"));
+
+        //add the new link to coverPhoto field
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("An error occurred while uploading");
+      return;
+    }
+  };
+  return (
+    <>
+      <label htmlFor="coverphoto" className="cursor-pointer">
+        <FaCamera
+          className={`${
+            user?.coverPhoto ? "text-gray-300" : " text-gray-700"
+          } absolute right-4 bottom-4 text-2xl`}
+        />
+      </label>
+      <input
+        type="file"
+        name="coverphoto"
+        id="coverphoto"
+        className="hidden"
+        accept=".png, .jpeg, .jpg"
+        onChange={handleOnChange}
+      />
+    </>
   );
 };
