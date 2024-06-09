@@ -621,16 +621,16 @@ export const UpdatSocialMediaLinks = () => {
     ? user?.socialLinks[0]
     : "Facebook";
 
-  const previousInstagramLink = user?.socialLinks[0]
-    ? user?.socialLinks[0]
+  const previousInstagramLink = user?.socialLinks[1]
+    ? user?.socialLinks[1]
     : "Instagram";
 
-  const previousLinkedInLink = user?.socialLinks[0]
-    ? user?.socialLinks[0]
+  const previousLinkedInLink = user?.socialLinks[2]
+    ? user?.socialLinks[2]
     : "LinkedIn";
 
-  const previousTwitterLink = user?.socialLinks[0]
-    ? user?.socialLinks[0]
+  const previousTwitterLink = user?.socialLinks[3]
+    ? user?.socialLinks[3]
     : "Twitter";
 
   //destructure editsocialLink
@@ -661,28 +661,19 @@ export const UpdatSocialMediaLinks = () => {
 
   //handle submit links
   const handeOnSubmit = async () => {
-    // check if previous link is the same as new link
-
-    //check if previousFacebookLink === newFacebookLink, return if true
-    if (previousFacebookLink === newFacebookLink) {
-      setOpenModal(false);
-      return;
-    }
-
-    //check if previousInstagramLink === newInstagramLink, return if true
-    if (previousInstagramLink === newInstagramLink) {
-      setOpenModal(false);
-      return;
-    }
-
-    //check if previousLinkedInLink === newLinkedInLink, return if true
-    if (previousLinkedInLink === newLinkedInLink) {
-      setOpenModal(false);
-      return;
-    }
-
-    //check if previousTwitterLink === newTwitterLink, return if true
-    if (previousTwitterLink === newTwitterLink) {
+    //check if previousFacebookLink === newFacebookLink and previousInstagramLink === newInstagramLink and previousLinkedInLink === newLinkedInLink and previousTwitterLink === newTwitterLink, return if true
+    if (
+      previousFacebookLink === newFacebookLink &&
+      previousInstagramLink === newInstagramLink &&
+      previousLinkedInLink === newLinkedInLink &&
+      previousTwitterLink === newTwitterLink
+    ) {
+      setEditSocialLink({
+        Facebook: false,
+        Instagram: false,
+        LinkedIn: false,
+        Twitter: false,
+      });
       setOpenModal(false);
       return;
     }
@@ -750,6 +741,12 @@ export const UpdatSocialMediaLinks = () => {
       toast.error("an error occurred");
       setSaving(false);
     } finally {
+      setEditSocialLink({
+        Facebook: false,
+        Instagram: false,
+        LinkedIn: false,
+        Twitter: false,
+      });
       setOpenModal(false);
     }
   };
@@ -794,6 +791,12 @@ export const UpdatSocialMediaLinks = () => {
               className="absolute top-8 right-4 text-gray-800 cursor-pointer"
               onClick={() => {
                 setNewSocialLinks({ ...newSocialLinks });
+                setEditSocialLink({
+                  Facebook: false,
+                  Instagram: false,
+                  LinkedIn: false,
+                  Twitter: false,
+                });
                 setOpenModal(false);
               }}
             />
