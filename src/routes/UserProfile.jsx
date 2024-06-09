@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useUserContext } from "../context/UserContextProvider";
 import { LuDot } from "react-icons/lu";
@@ -33,7 +33,7 @@ const UserProfile = () => {
   //if loading is false and user is loggedin return dashbord
   if (!isLoading && user)
     return (
-      <section className="max-w-2xl mx-auto">
+      <section className="max-w-2xl mx-auto pb-10">
         {/* title */}
         <h4
           id="profile-information"
@@ -601,6 +601,158 @@ export const UpdateBio = () => {
 //Update social media links
 export const UpdatSocialMediaLinks = () => {
   const [openModal, setOpenModal] = useState(false);
+  const { user } = useUserContext();
+  const [saving, setSaving] = useState(false);
+  const [newSocialLinks, setNewSocialLinks] = useState({
+    newFacebookLink: user?.socialLinks[0] ? user?.socialLinks[0] : "Facebook",
+    newInstagramLink: user?.socialLinks[1] ? user?.socialLinks[1] : "Instagram",
+    newLinkedInLink: user?.socialLinks[2] ? user?.socialLinks[2] : "LinkedIn",
+    newTwitterLink: user?.socialLinks[3] ? user?.socialLinks[3] : "Twitter",
+  });
+  const [editSocialLink, setEditSocialLink] = useState({
+    Facebook: false,
+    Instagram: false,
+    LinkedIn: false,
+    Twitter: false,
+  });
+
+  //previous links (i.e social links in firestore)
+  const previousFacebookLink = user?.socialLinks[0]
+    ? user?.socialLinks[0]
+    : "Facebook";
+
+  const previousInstagramLink = user?.socialLinks[0]
+    ? user?.socialLinks[0]
+    : "Instagram";
+
+  const previousLinkedInLink = user?.socialLinks[0]
+    ? user?.socialLinks[0]
+    : "LinkedIn";
+
+  const previousTwitterLink = user?.socialLinks[0]
+    ? user?.socialLinks[0]
+    : "Twitter";
+
+  //destructure editsocialLink
+  const { Facebook, Instagram, LinkedIn, Twitter } = editSocialLink;
+  const { newFacebookLink, newInstagramLink, newLinkedInLink, newTwitterLink } =
+    newSocialLinks;
+
+  //update editsocialLink state
+  const edit = (name) => {
+    setEditSocialLink(() => ({
+      ...editSocialLink,
+      [name]: true,
+    }));
+  };
+
+  //handle onchange
+  const handleOnChange = (e) => {
+    setNewSocialLinks(() => ({
+      ...newSocialLinks,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  //function to check if input consists of only spaces
+  const isOnlySpaces = (value) => {
+    return value.trim(" ").length === 0;
+  };
+
+  //handle submit links
+  const handeOnSubmit = async () => {
+    // check if previous link is the same as new link
+
+    //check if previousFacebookLink === newFacebookLink, return if true
+    if (previousFacebookLink === newFacebookLink) {
+      setOpenModal(false);
+      return;
+    }
+
+    //check if previousInstagramLink === newInstagramLink, return if true
+    if (previousInstagramLink === newInstagramLink) {
+      setOpenModal(false);
+      return;
+    }
+
+    //check if previousLinkedInLink === newLinkedInLink, return if true
+    if (previousLinkedInLink === newLinkedInLink) {
+      setOpenModal(false);
+      return;
+    }
+
+    //check if previousTwitterLink === newTwitterLink, return if true
+    if (previousTwitterLink === newTwitterLink) {
+      setOpenModal(false);
+      return;
+    }
+
+    //check if facebook link is not empty
+    if (isOnlySpaces(newFacebookLink)) {
+      toast.error("Field cannot be empty");
+      return;
+    }
+    //check if facebook link is not greater than 30
+    if (newFacebookLink.length > 30) {
+      toast.error("Must be less than 30");
+      return;
+    }
+
+    //check if instagram link is not empty
+    if (isOnlySpaces(newInstagramLink)) {
+      toast.error("Field cannot be empty");
+      return;
+    }
+    //check if Instagram link is not greater than 30
+    if (newInstagramLink.length > 30) {
+      toast.error("Must be less than 30");
+      return;
+    }
+
+    //check if linkedIn link is not empty
+    if (isOnlySpaces(newLinkedInLink)) {
+      toast.error("Field cannot be empty");
+      return;
+    }
+    //check if LinkedIn link is not greater than 30
+    if (newLinkedInLink.length > 30) {
+      toast.error("Must be less than 30");
+      return;
+    }
+
+    //check if twitter link is not empty
+    if (isOnlySpaces(newTwitterLink)) {
+      toast.error("Field cannot be empty");
+      return;
+    }
+    //check if twitter link is not greater than 30
+    if (newTwitterLink.length > 30) {
+      toast.error("Must be less than 30");
+      return;
+    }
+
+    setSaving(true);
+
+    //continue if none is empty
+    const updatedSocialLinks = [
+      newFacebookLink,
+      newInstagramLink,
+      newLinkedInLink,
+      newTwitterLink,
+    ];
+
+    //update socialLinks in firestore
+    try {
+      await updateUser(auth.currentUser.uid, "socialLinks", updatedSocialLinks);
+      setSaving(false);
+      toast.success("Updated sucessfully");
+    } catch (error) {
+      toast.error("an error occurred");
+      setSaving(false);
+    } finally {
+      setOpenModal(false);
+    }
+  };
   return (
     <div>
       {" "}
@@ -616,19 +768,19 @@ export const UpdatSocialMediaLinks = () => {
       <ul className="mt-3 text-gray-600 space-y-2">
         <li className="flex items-center gap-2">
           <FaFacebookF className="text-gray-600 text-md" />
-          Facebook
+          {newFacebookLink}
         </li>
         <li className="flex items-center gap-2">
           <FaSquareInstagram className="text-gray-600 text-md" />
-          Instagram
+          {newInstagramLink}
         </li>
         <li className="flex items-center gap-2">
           <FaLinkedinIn className="text-gray-600 text-md" />
-          LinkedIn
+          {newLinkedInLink}
         </li>
         <li className="flex items-center gap-2">
           <ImTwitter className="text-gray-600 text-md" />
-          Twitter
+          {newTwitterLink}
         </li>
       </ul>
       {/* modal */}
@@ -640,7 +792,10 @@ export const UpdatSocialMediaLinks = () => {
             </h5>
             <FaTimes
               className="absolute top-8 right-4 text-gray-800 cursor-pointer"
-              onClick={() => setOpenModal(false)}
+              onClick={() => {
+                setNewSocialLinks({ ...newSocialLinks });
+                setOpenModal(false);
+              }}
             />
             <p className="ms-auto text-xs text-gray-500 dark:text-gray-400 mt-1">
               Your social media links get people to know more about you.
@@ -648,53 +803,117 @@ export const UpdatSocialMediaLinks = () => {
             <ul className="mt-3 text-gray-600 space-y-2">
               <li className="flex items-center gap-2">
                 <FaFacebookF className="text-gray-600 text-md" />
-                Facebook
-                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
-                  edit
-                </span>
+
+                {!Facebook && (
+                  <>
+                    {" "}
+                    {newFacebookLink}
+                    <span
+                      onClick={() => edit("Facebook")}
+                      className="ml-3 text-gray-500 text-sm cursor-pointer"
+                    >
+                      edit
+                    </span>
+                  </>
+                )}
+                {Facebook && (
+                  <>
+                    <input
+                      type="text"
+                      className="px-2 py-1 text-sm text-gray-900 bg-white border-0 rounded-md"
+                      value={newFacebookLink}
+                      id="newFacebookLink"
+                      onChange={handleOnChange}
+                    />
+                  </>
+                )}
               </li>
               <li className="flex items-center gap-2">
                 <FaSquareInstagram className="text-gray-600 text-md" />
-                Instagram
-                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
-                  edit
-                </span>
+                {!Instagram && (
+                  <>
+                    {" "}
+                    {newInstagramLink}
+                    <span
+                      onClick={() => edit("Instagram")}
+                      className="ml-3 text-gray-500 text-sm cursor-pointer"
+                    >
+                      edit
+                    </span>
+                  </>
+                )}
+                {Instagram && (
+                  <>
+                    <input
+                      type="text"
+                      className="px-2 py-1 text-sm text-gray-900 bg-white border-0 rounded-md"
+                      value={newInstagramLink}
+                      id="newInstagramLink"
+                      onChange={handleOnChange}
+                    />
+                  </>
+                )}
               </li>
               <li className="flex items-center gap-2">
                 <FaLinkedinIn className="text-gray-600 text-md" />
-                LinkedIn
-                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
-                  edit
-                </span>
+                {!LinkedIn && (
+                  <>
+                    {" "}
+                    {newLinkedInLink}
+                    <span
+                      onClick={() => edit("LinkedIn")}
+                      className="ml-3 text-gray-500 text-sm cursor-pointer"
+                    >
+                      edit
+                    </span>
+                  </>
+                )}
+                {LinkedIn && (
+                  <>
+                    <input
+                      type="text"
+                      className="px-2 py-1 text-sm text-gray-900 bg-white border-0 rounded-md"
+                      value={newLinkedInLink}
+                      id="newLinkedInLink"
+                      onChange={handleOnChange}
+                    />
+                  </>
+                )}
               </li>
               <li className="flex items-center gap-2">
                 <ImTwitter className="text-gray-600 text-md" />
-                Twitter
-                <span className="ml-3 text-gray-500 text-sm cursor-pointer">
-                  edit
-                </span>
-                {/* <div className="border-2 border-white">
-                  <label
-                    for="first_name"
-                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    First name
-                  </label>
-                  <input
-                    type="text"
-                    id="first_name"
-                    className="border-transparent focus:border-transparent ring-0"
-                    placeholder="John"
-                    required
-                  />
-                </div> */}
+                {!Twitter && (
+                  <>
+                    {" "}
+                    {newTwitterLink}
+                    <span
+                      onClick={() => edit("Twitter")}
+                      className="ml-3 text-gray-500 text-sm cursor-pointer"
+                    >
+                      edit
+                    </span>
+                  </>
+                )}
+                {Twitter && (
+                  <>
+                    <input
+                      type="text"
+                      className="px-2 py-1 text-sm text-gray-900 bg-white border-0 rounded-md"
+                      value={newTwitterLink}
+                      id="newTwitterLink"
+                      onChange={handleOnChange}
+                    />
+                  </>
+                )}
               </li>
             </ul>
             <button
+              disabled={saving}
+              onClick={handeOnSubmit}
               type="button"
               className="inline-flex items-center mt-8 py-2.5 px-4 text-xs font-medium text-center text-white bg-gray-700 rounded-lg"
             >
-              Apply changes
+              {saving ? "Saving..." : "Apply changes"}
             </button>
           </div>
         </div>
