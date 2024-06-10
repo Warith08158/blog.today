@@ -174,7 +174,7 @@ export const UserImages = () => {
           <UpdateAvatar />
         </div>
 
-        <div className="absolute top-4 left-4">
+        <div className="absolute z-10 top-4 left-4">
           <UserName />
           <p
             className={`${
@@ -356,6 +356,8 @@ export const UpdateCoverPhoto = () => {
     } catch (error) {
       toast.error("An error occurred while uploading");
       return;
+    } finally {
+      setUploading(false);
     }
   };
   return (
@@ -378,7 +380,7 @@ export const UpdateCoverPhoto = () => {
 
       {/* if image  is uploading */}
       {uploading && (
-        <div className="fixed top-20 right-0 left-0 flex items-center justify-center">
+        <div className="fixed top-30 z-20 right-0 left-0 flex items-center justify-center">
           <Uploading />
         </div>
       )}
