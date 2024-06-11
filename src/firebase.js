@@ -260,3 +260,18 @@ export const deleteFile = (fileName) => {
     }
   );
 };
+
+//add post to Posts doc in firestore
+export const addPost = (userID, data) => {
+  const docRef = doc(db, "Posts", userID);
+  return new Promise(
+    (resolve, reject) => {
+      setDoc(docRef, data)
+        .then(() => resolve("Doc added"))
+        .catch((error) => reject(error));
+    },
+    (error) => {
+      throw error;
+    }
+  );
+};

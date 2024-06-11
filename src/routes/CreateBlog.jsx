@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import Input from "../components/Input";
+import React, { useRef, useState } from "react";
 import { blogCategories } from "../data/blogCategories";
 import { toast } from "react-toastify";
+import { auth, getUserData, updateUser, uploadFile } from "../firebase";
+import { v4 as uuidv4 } from "uuid";
+import { useNavigate } from "react-router-dom";
 
 const CreateBlog = () => {
   const publishDateRef = useRef();
@@ -12,15 +14,15 @@ const CreateBlog = () => {
   const subCategoryRef = useRef();
   const contentFieldRef = useRef();
   const thumbNailRef = useRef();
+  const buttonRef = useRef();
+  const navigate = useNavigate();
 
   //function to check if input consists of only spaces
   const isOnlySpaces = (value) => {
     return value.trim(" ").length === 0;
   };
 
-  const hanldeFormSubmit = (e) => {
-    e.preventDefault();
-
+  const hanldeFormSubmit = async () => {
     const date = publishDateRef.current.innerHTML;
     const status = statusRef.current.value;
     const Title = blogTitleRef.current.value;
@@ -56,16 +58,70 @@ const CreateBlog = () => {
       BlogCategory: category,
       BlogSubCategory: subCategory,
       BlogContent: content,
-      BlogThumbnail: thumbnail,
+      BlogThumbnail: thumbnail
+        ? thumbnail.name + "-" + `${auth.currentUser.uid}` + "-" + uuidv4()
+        : null,
     };
+    buttonRef.current.classList.add("pointer-events-none");
 
-    console.log(blogData);
+    //if status is publish
+    if (status === "Publish") {
+      buttonRef.current.innerHTML = "Publishing...";
+    }
+
+    //if status is Draft
+    if (status === "draft") {
+      buttonRef.current.innerHTML = "Saving...";
+    }
+
+    //add blog data to firestore
+    try {
+      //get user data from firestore
+      const userData = await getUserData(auth.currentUser.uid);
+
+      //if status is publish
+      // if (status === "Publish") {
+      //   //upload thumbnail to database
+      //   await addPost(auth.currentUser.uid);
+      //   toast.success("Published successfully");
+      //   return;
+      // }
+
+      //if status is Draft
+      if (status === "draft") {
+        //upload thumbnail to database
+        if (blogData.BlogThumbnail) {
+          const thumbnailURL = await uploadFile(
+            thumbnail,
+            blogData.BlogThumbnail
+          );
+          blogData.BlogThumbnail = thumbnailURL;
+        }
+
+        //check if user already has drafts
+        if (!userData.data().drafts) {
+          //if user has no drafts
+          await updateUser(auth.currentUser.uid, "drafts", [blogData]);
+        } else {
+          //if user has drafts
+          await updateUser(auth.currentUser.uid, "drafts", [
+            ...userData.data().drafts,
+            blogData,
+          ]);
+        }
+        toast.success("Post saved successfully");
+        navigate("/");
+        return;
+      }
+    } catch (error) {
+      toast.error("an error occurred");
+    }
   };
   return (
     <section className="max-w-2xl mx-auto mb-10">
       <form
         className="w-[95%] mx-auto rounded-lg shadow-lg px-4 mt-6 py-4 bg-gray-50"
-        onSubmit={hanldeFormSubmit}
+        onSubmit={(e) => e.preventDefault()}
       >
         <h2 className="text-2xl font-bold text-gray-800">Create A Blog</h2>
 
@@ -114,10 +170,12 @@ const CreateBlog = () => {
         {/* post blog button */}
         <div className="flex justify-end">
           <button
+            onClick={hanldeFormSubmit}
+            ref={buttonRef}
             type="submit"
             className="inline-flex items-center mt-8 py-2.5 px-4 text-xs font-medium text-center text-white bg-gray-700 rounded-lg"
           >
-            Post blog
+            Continue
           </button>
         </div>
       </form>
@@ -171,8 +229,8 @@ export const ThumbNail = ({ reference }) => {
     <div>
       <div className={`flex items-center justify-center w-full`}>
         <label
-          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          for="multiple_files"
+          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          htmlFor="multiple_files"
         ></label>
         <input
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
