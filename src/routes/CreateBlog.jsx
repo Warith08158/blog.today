@@ -5,13 +5,13 @@ import {
   addPost,
   auth,
   getUserBlogs,
-  getUserData,
-  updateUser,
   uploadFile,
   userIDBlogs,
 } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useUserContext } from "../context/UserContextProvider";
+import { SkeletonLoader } from "./UserProfile";
 
 const CreateBlog = () => {
   const publishDateRef = useRef();
@@ -132,6 +132,16 @@ const CreateBlog = () => {
       buttonRef.current.innerHTML = "Continue";
     }
   };
+
+  const { isLoading, user } = useUserContext();
+
+  //if loading is true return skeleton loading
+  if (isLoading) return <SkeletonLoader />;
+
+  //if loading is false and user is not loggedin navigate to sign in page
+  if (!isLoading && !user) return <Navigate to="/sign-in" />;
+
+  //if loading is false and user is loggedin return create page
   return (
     <section className="max-w-2xl mx-auto mb-10">
       <form
