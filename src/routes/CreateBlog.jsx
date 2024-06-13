@@ -1,7 +1,15 @@
 import React, { useRef, useState } from "react";
 import { blogCategories } from "../data/blogCategories";
 import { toast } from "react-toastify";
-import { auth, getUserData, updateUser, uploadFile } from "../firebase";
+import {
+  addPost,
+  auth,
+  getUserBlogs,
+  getUserData,
+  updateUser,
+  uploadFile,
+  userIDBlogs,
+} from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 import { useNavigate } from "react-router-dom";
 
@@ -64,57 +72,64 @@ const CreateBlog = () => {
     };
     buttonRef.current.classList.add("pointer-events-none");
 
-    //if status is publish
-    if (status === "Publish") {
-      buttonRef.current.innerHTML = "Publishing...";
-    }
-
-    //if status is Draft
-    if (status === "draft") {
-      buttonRef.current.innerHTML = "Saving...";
-    }
-
-    //add blog data to firestore
     try {
-      //get user data from firestore
-      const userData = await getUserData(auth.currentUser.uid);
-
       //if status is publish
-      // if (status === "Publish") {
-      //   //upload thumbnail to database
-      //   await addPost(auth.currentUser.uid);
-      //   toast.success("Published successfully");
-      //   return;
-      // }
+      if (status === "Publish") {
+        buttonRef.current.innerHTML = "Publishing...";
 
-      //if status is Draft
-      if (status === "draft") {
-        //upload thumbnail to database
         if (blogData.BlogThumbnail) {
           const thumbnailURL = await uploadFile(
             thumbnail,
             blogData.BlogThumbnail
           );
+          //update thumbnail url
           blogData.BlogThumbnail = thumbnailURL;
         }
 
-        //check if user already has drafts
-        if (!userData.data().drafts) {
-          //if user has no drafts
-          await updateUser(auth.currentUser.uid, "drafts", [blogData]);
+        const userBlogs = await getUserBlogs(auth.currentUser.uid);
+
+        //check if user hass blogs
+        if (userBlogs.data()) {
+          //if user has blogs
+          await addPost("Posts", auth.currentUser.uid, blogData);
+          toast.success("Published successfully");
+          navigate("/");
         } else {
-          //if user has drafts
-          await updateUser(auth.currentUser.uid, "drafts", [
-            ...userData.data().drafts,
-            blogData,
-          ]);
+          //if user doesn't have blogs
+
+          //create space for new blog
+          const newBlog = {
+            user: auth.currentUser.uid,
+          };
+          await userIDBlogs(auth.currentUser.uid, newBlog);
+          await addPost("Posts", auth.currentUser.uid, blogData);
+          toast.success("Published successfully");
+          navigate("/");
         }
-        toast.success("Post saved successfully");
-        navigate("/");
         return;
       }
+
+      //if status is Draft
+      if (status === "draft") {
+        buttonRef.current.innerHTML = "Saving...";
+
+        if (blogData.BlogThumbnail) {
+          const thumbnailURL = await uploadFile(
+            thumbnail,
+            blogData.BlogThumbnail
+          );
+          //update thumbnail url
+          blogData.BlogThumbnail = thumbnailURL;
+        }
+
+        await addPost("users", auth.currentUser.uid, blogData);
+        toast.success("Saved successfully");
+        navigate("/");
+      }
     } catch (error) {
-      toast.error("an error occurred");
+      console.log(error);
+      buttonRef.current.classList.remove("pointer-events-none");
+      buttonRef.current.innerHTML = "Continue";
     }
   };
   return (

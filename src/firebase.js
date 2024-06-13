@@ -12,9 +12,12 @@ import { GoogleAuthProvider } from "firebase/auth";
 import {
   doc,
   getDoc,
+  getDocs,
   getFirestore,
   setDoc,
   updateDoc,
+  collection,
+  arrayUnion,
 } from "firebase/firestore";
 import {
   deleteObject,
@@ -262,7 +265,52 @@ export const deleteFile = (fileName) => {
 };
 
 //add post to Posts doc in firestore
-export const addPost = (userID, data) => {
+export const addPost = (collectionName, docId, newData) => {
+  const docRef = doc(db, collectionName, docId);
+  return new Promise(
+    (resolve, reject) => {
+      updateDoc(docRef, {
+        blogsField: arrayUnion(newData),
+      })
+        .then(() => resolve("uploaded successfully"))
+        .catch((error) => reject(error));
+    },
+    (error) => {
+      throw error;
+    }
+  );
+};
+
+//check if user has blog in the post document in firestore
+export const getUserBlogs = (userID) => {
+  const docRef = doc(db, "Posts", userID);
+  return new Promise(
+    (resolve, reject) => {
+      getDoc(docRef)
+        .then((docSnap) => resolve(docSnap))
+        .catch((error) => reject(error));
+    },
+    (error) => {
+      throw new Error(error);
+    }
+  );
+};
+
+// Function to get blogs
+// export async function getBlogs(collectionName) {
+//   const colRef = collection(db, collectionName);
+//   const snapshot = await getDocs(colRef);
+//   const collectionData = [];
+
+//   snapshot.forEach((doc) => {
+//     collectionData.push({ id: doc.id, ...doc.data() });
+//   });
+
+//   return collectionData;
+// }
+
+//add user id to blogs
+export const userIDBlogs = (userID, data) => {
   const docRef = doc(db, "Posts", userID);
   return new Promise(
     (resolve, reject) => {
@@ -271,7 +319,7 @@ export const addPost = (userID, data) => {
         .catch((error) => reject(error));
     },
     (error) => {
-      throw error;
+      throw new Error(error);
     }
   );
 };
