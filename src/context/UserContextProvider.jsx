@@ -10,6 +10,7 @@ export const useUserContext = () => useContext(userContext);
 const UserProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [blogs, setBlogs] = useState(null);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.emailVerified) {
@@ -17,9 +18,14 @@ const UserProvider = ({ children }) => {
           setUser(doc.data());
           setIsLoading(false);
         });
+        onSnapshot(doc(db, "Posts", user.uid), (doc) => {
+          setBlogs(doc.data());
+          setIsLoading(false);
+        });
       } else {
         setIsLoading(false);
         setUser(null);
+        setBlogs(null);
       }
     });
 
@@ -29,7 +35,7 @@ const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <userContext.Provider value={{ isLoading, user }}>
+    <userContext.Provider value={{ isLoading, user, blogs }}>
       {children}
     </userContext.Provider>
   );
